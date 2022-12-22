@@ -1,0 +1,113 @@
+Sub StockAnalysis()
+    Dim ws As Worksheet
+
+    ' loop through each worksheet in the workbook
+    For Each ws In ThisWorkbook.Worksheets
+        Dim LastRow As Long
+        LastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+        Dim Ticker As String
+        Dim StockVolume As Double
+        Dim Summary_Table As Integer
+        Summary_Table = 2
+        Dim percentageChange As Double
+        Dim firstOpen As Double
+        Dim lastClose As Double
+        Dim difference As Double
+        Dim tickerRow As Long
+        tickerRow = 2 ' the first row of data is row 2
+        Dim lastTickerRow As Long
+        lastTickerRow = tickerRow
+        Dim maxVolume As Double
+        maxVolume = -1
+       Dim maxTicker As String
+       Dim maxPercentIncrease As Double
+       Dim maxPercentTicker As String
+       Dim maxPercentDecrease As Double
+       maxPercentDecrease = 0
+       Dim minPercentTicker As String
+    
+        ' loop through each row of data in the worksheet
+For i = 2 To LastRow
+    If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+        Ticker = ws.Cells(i, 1).Value
+        StockVolume = StockVolume + ws.Cells(i, 7).Value
+
+        ' Find the first and last rows of data for this ticker
+        Do While ws.Cells(tickerRow, 1).Value <> Ticker
+            tickerRow = tickerRow + 1
+        Loop
+
+        Do While ws.Cells(lastTickerRow + 1, 1).Value = Ticker
+            lastTickerRow = lastTickerRow + 1
+        Loop
+
+        ' Extract the first value of the 'open' column and the last value of the 'close' column for this ticker
+        firstOpen = ws.Cells(tickerRow, 3).Value
+        lastClose = ws.Cells(lastTickerRow, 6).Value
+
+        ' Calculate the difference between the first open and last close prices(YearlyChange)
+        difference = lastClose - firstOpen
+
+        ' Calculate the percentage change
+        percentageChange = (difference / firstOpen)
+
+        ' Check if the current ticker has the largest stock volume seen so far
+        If StockVolume > maxVolume Then
+            maxVolume = StockVolume
+            maxTicker = Ticker
+        End If
+
+        ' Check if the current ticker has the largest percentage increase seen so far
+        If percentageChange > maxPercentIncrease Then
+            maxPercentIncrease = percentageChange
+            maxPercentTicker = Ticker
+        End If
+
+        ' Check if the current ticker has the largest percentage decrease seen so far
+        If percentageChange < maxPercentDecrease Then
+            maxPercentDecrease = percentageChange
+            minPercentTicker = Ticker
+        End If
+
+        ' print the results for columns I to L in the current worksheet
+        ws.Range("I" & Summary_Table).Value = Ticker
+        ws.Range("L" & Summary_Table).Value = StockVolume
+
+        ws.Range("J" & Summary_Table).Value = difference
+        ws.Range("J" & Summary_Table).NumberFormat = "0.00$"
+        
+          ws.Range("K" & Summary_Table).Value = percentageChange
+        ws.Range("K" & Summary_Table).NumberFormat = "0.00%"
+
+        ' Update the maximum ticker and stock volume found so far
+        ws.Cells(4, 18).Value = maxTicker
+        ws.Cells(4, 19).Value = maxVolume
+
+        ws.Cells(2, 18).Value = maxPercentTicker
+        ws.Cells(2, 19).Value = maxPercentIncrease
+        ws.Cells(2, 19).NumberFormat = "0.00%"
+
+        ws.Cells(3, 18).Value = minPercentTicker
+        ws.Cells(3, 19).Value = maxPercentDecrease
+        
+
+        If difference >= 0 Then
+            ws.Range("J" & Summary_Table).Interior.Color = vbGreen
+        Else
+            ws.Range("J" & Summary_Table).Interior.Color = vbRed
+        End If
+
+        Summary_Table = Summary_Table + 1
+        StockVolume = 0
+            
+            Else
+                StockVolume = StockVolume + ws.Cells(i, 7).Value
+                                                
+            End If
+           
+            
+        Next i
+        
+    Next ws
+End Sub
+
